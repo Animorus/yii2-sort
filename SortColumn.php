@@ -21,19 +21,32 @@ use yii\helpers\Url;
  */
 class SortColumn extends ActionColumn
 {
-    /**
-     * @inheritdoc
-     */
-    public $template = '{sortPin} {sortDown} {sortUp}';
+    /** @inheritdoc */
+    public $template = '{up} {down} {pin}';
+
     /** @var string Name of action for handle sort changing */
     public $action = 'change-sort';
+
+    /** @inheritdoc */
+    public $buttonOptions = [
+        'class' => 'btn btn-default btn-sm'
+    ];
 
     public function init()
     {
         parent::init();
 
-        $this->headerOptions['style'] = 'min-width: 105px;' . (isset($this->headerOptions['style']) ? ' ' . $this->headerOptions['style'] : '');
-        $this->contentOptions['style'] = 'text-align: center;' . (isset($this->contentOptions['style']) ? ' ' . $this->contentOptions['style'] : '');
+        $this->headerOptions['style'] = 'min-width: 130px;' . (isset($this->headerOptions['style']) ? ' ' . $this->headerOptions['style'] : '');
+        $this->contentOptions['style'] = 'text-align: right;' . (isset($this->contentOptions['style']) ? ' ' . $this->contentOptions['style'] : '');
+
+        $this->visibleButtons = [
+            'up' => function ($model, $key, $index) {
+                return $model->canSort(SortBehavior::DIR_UP);
+            },
+            'down' => function ($model, $key, $index) {
+                return $model->canSort(SortBehavior::DIR_DOWN);
+            }
+        ];
     }
 
     /**
@@ -41,38 +54,32 @@ class SortColumn extends ActionColumn
      */
     protected function initDefaultButtons()
     {
-        if (!isset($this->buttons['sortUp'])) {
-            $this->buttons['sortUp'] = function ($url, $model, $key) {
-                /* @var $model ActiveRecord|SortBehavior */
-                return Html::a('<span class="glyphicon glyphicon-arrow-up"></span>', $url, [
-                    'title' => 'Sort Up',
-                    'disabled' => !$model->canSort(SortBehavior::DIR_UP),
+        $this->initDefaultButton('up', 'arrow-up');
+        $this->initDefaultButton('down', 'arrow-down');
+        $this->initDefaultButton('pin', 'pushpin');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function initDefaultButton($name, $iconName, $additionalOptions = [])
+    {
+        if (!isset($this->buttons[$name]) && strpos($this->template, '{' . $name . '}') !== false) {
+            $this->buttons[$name] = function ($url, $model, $key) use ($name, $iconName, $additionalOptions) {
+                $title = ucfirst($name);
+
+                $options = array_merge([
+                    'title' => $title,
+                    'aria-label' => $title,
                     'data-pjax' => '0',
-                    'class' => 'btn btn-info',
-                ]);
-            };
-        }
-        if (!isset($this->buttons['sortDown'])) {
-            $this->buttons['sortDown'] = function ($url, $model, $key) {
-                /* @var $model ActiveRecord|SortBehavior */
-                return Html::a('<span class="glyphicon glyphicon-arrow-down"></span>', $url, [
-                    'title' => 'Sort Down',
-                    'disabled' => !$model->canSort(SortBehavior::DIR_DOWN),
-                    'data-pjax' => '0',
-                    'class' => 'btn btn-info',
-                ]);
-            };
-        }
-        
-        if (!isset($this->buttons['sortPin'])) {
-            $this->buttons['sortPin'] = function ($url, $model, $key) {
-                /* @var $model ActiveRecord|SortBehavior */
-                return Html::a('<span class="glyphicon glyphicon-pushpin"></span>', $url, [
-                    'title' => 'Pin Record',
-                    'disabled' => !$model->canSort(SortBehavior::DIR_DOWN),
-                    'data-pjax' => '0',
-                    'class' => 'btn btn-info',
-                ]);
+                ], $additionalOptions, $this->buttonOptions);
+
+                if ($name == 'pin' && $model->isPinned()) {
+                    $iconName = 'remove';
+                }
+
+                $icon = Html::tag('span', '', ['class' => "glyphicon glyphicon-$iconName"]);
+                return Html::a($icon, $url, $options);
             };
         }
     }
@@ -88,9 +95,9 @@ class SortColumn extends ActionColumn
             $params = is_array($key) ? $key : ['id' => (string)$key];
 
             // set sort direction param
-            if ($buttonName == 'sortUp') {
+            if ($buttonName == 'up') {
                 $params['direction'] = SortBehavior::DIR_UP;
-            } elseif ($buttonName == 'sortDown') {
+            } elseif ($buttonName == 'down') {
                 $params['direction'] = SortBehavior::DIR_DOWN;
             }
 
