@@ -36,8 +36,7 @@ class SortColumn extends ActionColumn
     {
         parent::init();
 
-        $this->headerOptions['style'] = 'min-width: 130px;' . (isset($this->headerOptions['style']) ? ' ' . $this->headerOptions['style'] : '');
-        $this->contentOptions['style'] = 'text-align: right;' . (isset($this->contentOptions['style']) ? ' ' . $this->contentOptions['style'] : '');
+        $this->contentOptions['style'] = 'text-align: right;white-space: nowrap;' . (isset($this->contentOptions['style']) ? ' ' . $this->contentOptions['style'] : '');
 
         $this->visibleButtons = [
             'up' => function ($model, $key, $index) {
