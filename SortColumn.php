@@ -24,7 +24,7 @@ class SortColumn extends ActionColumn
     /**
      * @inheritdoc
      */
-    public $template = '{sortDown} {sortUp}';
+    public $template = '{sortPin} {sortDown} {sortUp}';
     /** @var string Name of action for handle sort changing */
     public $action = 'change-sort';
 
@@ -57,6 +57,18 @@ class SortColumn extends ActionColumn
                 /* @var $model ActiveRecord|SortBehavior */
                 return Html::a('<span class="glyphicon glyphicon-arrow-down"></span>', $url, [
                     'title' => 'Sort Down',
+                    'disabled' => !$model->canSort(SortBehavior::DIR_DOWN),
+                    'data-pjax' => '0',
+                    'class' => 'btn btn-info',
+                ]);
+            };
+        }
+        
+        if (!isset($this->buttons['sortPin'])) {
+            $this->buttons['sortPin'] = function ($url, $model, $key) {
+                /* @var $model ActiveRecord|SortBehavior */
+                return Html::a('<span class="glyphicon glyphicon-pushpin"></span>', $url, [
+                    'title' => 'Pin Record',
                     'disabled' => !$model->canSort(SortBehavior::DIR_DOWN),
                     'data-pjax' => '0',
                     'class' => 'btn btn-info',

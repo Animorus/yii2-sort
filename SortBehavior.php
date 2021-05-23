@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) 2018 Ivan Orlov
  * @license   https://github.com/demisang/yii2-sort/blob/master/LICENSE
@@ -32,6 +33,8 @@ class SortBehavior extends Behavior
     public $sortConfig = [];
     /** @var string Condition hash for current model */
     private $_hash;
+    /** @var boolean Sorting mode */
+    private $_onlyPinned = false;
     /** @var array Variable for temporarily storing min. and max. values */
     private static $_min_max_vals = array();
     const DIR_UP = SORT_ASC;
@@ -89,8 +92,10 @@ class SortBehavior extends Behavior
             $query->orderBy = [$s_attr => SORT_ASC];
         }
 
-        $swap_model = $query->andWhere($s_attr . $sign . ':current_sort',
-            [':current_sort' => $current_sort])->one($owner->getDb());
+        $swap_model = $query->andWhere(
+            $s_attr . $sign . ':current_sort',
+            [':current_sort' => $current_sort]
+        )->one($owner->getDb());
 
         if ($swap_model) {
             // Change sorting the current record on the value of neighboring recording
@@ -120,6 +125,11 @@ class SortBehavior extends Behavior
 
         $owner = $this->owner;
         $hash = $this->_getConditionHash();
+
+        if (!$this->isPinned()) {
+            return false;
+        }
+
         if (!isset(self::$_min_max_vals[$hash])) {
             $this->_loadMinMax();
         }
@@ -141,6 +151,25 @@ class SortBehavior extends Behavior
         return true;
     }
 
+    public function togglePin()
+    {
+        $owner = $this->owner;
+        $s_attr = $this->_sortAttribute;
+
+        if ($this->isPinned()) {
+            $owner->setAttribute($s_attr, NULL);
+        } else {
+            $this->_setDefaultValue();
+        }
+
+        $owner->update(false, [$s_attr]);
+    }
+
+    public function isPinned()
+    {
+        return !empty($this->owner->getAttribute($this->_sortAttribute));
+    }
+
     /**
      * Validates the specified sort direction
      *
@@ -151,8 +180,10 @@ class SortBehavior extends Behavior
     private static function _checkSortDirection($direction)
     {
         if ($direction != static::DIR_UP && $direction != static::DIR_DOWN) {
-            throw new ServerErrorHttpException('You must set $direction as "' . static::DIR_UP . '" or "' . static::DIR_DOWN . '"!',
-                500);
+            throw new ServerErrorHttpException(
+                'You must set $direction as "' . static::DIR_UP . '" or "' . static::DIR_DOWN . '"!',
+                500
+            );
         }
     }
 
@@ -167,6 +198,9 @@ class SortBehavior extends Behavior
         // Find the minimum and maximum values for the sorting table
         $query = (new Query())->select("MIN(`$s_field`) as min_sort, MAX(`$s_field`) as max_sort")->from($owner->tableName());
         $this->_applyCustomCondition($query);
+        if ($this->_onlyPinned) {
+            $query->andWhere($this->_condition);
+        }
         $row = $query->one($owner->getDb());
 
         $hash = $this->_getConditionHash();
@@ -183,22 +217,27 @@ class SortBehavior extends Behavior
      */
     public function beforeSave()
     {
-        $owner = $this->owner;
-        $s_field = $this->_sortAttribute;
-        $sort = $owner->getAttribute($s_field);
-
-        // Set new sorting value for records without sort value
-        if (empty($sort)) {
-            // Find the last element of the sort
-            $hash = $this->_getConditionHash();
-            if (!isset(static::$_min_max_vals[$hash])) {
-                $this->_loadMinMax();
-            }
-            $max = static::$_min_max_vals[$hash]['max'];
-
-            // Sets the value of the sort as max + 1
-            $owner->setAttribute($this->_sortAttribute, $max + 1);
+        if (!$this->_onlyPinned && !$this->isPinned()) {
+            $this->_setDefaultValue();
         }
+    }
+
+    /**
+     * Set new sorting value for records without sort value
+     *
+     * @return void
+     */
+    private function _setDefaultValue()
+    {
+        // Find the last element of the sort
+        $hash = $this->_getConditionHash();
+        if (!isset(static::$_min_max_vals[$hash])) {
+            $this->_loadMinMax();
+        }
+        $max = static::$_min_max_vals[$hash]['max'];
+
+        // Sets the value of the sort as max + 1
+        $this->owner->setAttribute($this->_sortAttribute, $max + 1);
     }
 
     /**

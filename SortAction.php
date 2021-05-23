@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) 2018 Ivan Orlov
  * @license   https://github.com/demisang/yii2-sort/blob/master/LICENSE
@@ -65,8 +66,14 @@ class SortAction extends Action
 
         $direction = static::_getRequestParam('direction');
 
-        // Change sort value
-        $model->changeSorting($direction);
+        
+        if (!$direction) {
+            // if direction not set, then toggle pin
+            $model->togglePin();
+        } else { 
+            // else change sort value
+            $model->changeSorting($direction);
+        }
 
         // if exist custom response function
         if ($this->afterChange instanceof Closure) {
