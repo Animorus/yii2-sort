@@ -44,6 +44,9 @@ class SortColumn extends ActionColumn
             },
             'down' => function ($model, $key, $index) {
                 return $model->canSort(SortBehavior::DIR_DOWN);
+            },
+            'pin' => function ($model, $key, $index) {
+                return $model->canPin();
             }
         ];
     }
