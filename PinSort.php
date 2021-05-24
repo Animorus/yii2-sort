@@ -26,7 +26,9 @@ class PinSort extends Sort
             }
         }
 
-        //return $orders;
-        return array_merge([$this->pinAtrribute  => new Expression("{$this->pinAtrribute} IS NULL, {$this->pinAtrribute} ASC")], $orders);
+        return array_merge(
+            [$this->pinAtrribute  => new Expression("{$this->pinAtrribute} IS NULL, {$this->pinAtrribute} ASC")],
+            $orders
+        );
     }
 }

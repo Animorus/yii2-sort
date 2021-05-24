@@ -151,6 +151,11 @@ class SortBehavior extends Behavior
         return true;
     }
 
+    public function canPin()
+    {
+        return $this->_onlyPinned;
+    }
+
     public function togglePin()
     {
         $owner = $this->owner;

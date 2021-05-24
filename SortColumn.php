@@ -73,6 +73,7 @@ class SortColumn extends ActionColumn
                     'data-pjax' => '0',
                 ], $additionalOptions, $this->buttonOptions);
 
+                // TODO: Вынести куда-нибудь
                 if ($name == 'pin' && $model->isPinned()) {
                     $iconName = 'remove';
                 }
