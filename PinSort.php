@@ -4,7 +4,7 @@ namespace demi\sort;
 
 use Yii;
 use yii\data\Sort;
-use yii\db;
+use yii\db\Expression;
 
 class PinSort extends Sort
 {
