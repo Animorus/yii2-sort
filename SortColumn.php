@@ -29,13 +29,12 @@ class SortColumn extends ActionColumn
     public $action = 'change-sort';
 
     /** @inheritdoc */
-    public $buttonOptions = [
-        'class' => 'btn btn-default btn-sm'
-    ];
+    public $buttonOptions = ['class' => 'btn btn-default btn-sm'];
 
     /** @inheritDoc */
     public $header = '';
 
+    /** @inheritDoc */
     public $disableButtons = [];
 
     /** @inheritdoc */
@@ -90,8 +89,8 @@ class SortColumn extends ActionColumn
 
                 if (isset($this->disableButtons[$name])) {
                     $options['disabled'] = $this->disableButtons[$name] instanceof Closure
-                    ? call_user_func($this->disableButtons[$name], $model, $key, $index)
-                    : $this->disableButtons[$name];
+                        ? call_user_func($this->disableButtons[$name], $model, $key, $index)
+                        : $this->disableButtons[$name];
                 }
 
                 if ($iconName instanceof Closure) {
