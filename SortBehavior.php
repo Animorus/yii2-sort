@@ -42,7 +42,7 @@ class SortBehavior extends Behavior
     const MODE_SORT = 0;
     const MODE_PIN = 1;
 
-    private $_behaviorMode = $this::MODE_SORT;
+    private $_behaviorMode = self::MODE_SORT;
 
 
     /**
@@ -158,7 +158,7 @@ class SortBehavior extends Behavior
 
     public function canPin()
     {
-        return $this->_behaviorMode == $this::MODE_SORT;
+        return $this->_behaviorMode == self::MODE_SORT;
     }
 
     public function togglePin()
