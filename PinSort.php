@@ -8,8 +8,10 @@ use yii\db\Expression;
 
 class PinSort extends Sort
 {
+    /** @var string Name of attribute which is responsible for sorting */
     public $pinAtrribute = 'sort';
 
+    /** @inheritDoc */
     public function getOrders($recalculate = false)
     {
         $attributeOrders = $this->getAttributeOrders($recalculate);

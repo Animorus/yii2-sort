@@ -42,6 +42,10 @@ class SortBehavior extends Behavior
     const MODE_SORT = 0;
     const MODE_PIN = 1;
 
+    /**
+     * Sorting mode
+     * @param SortBehavior::MODE_SORT|SortBehavior::MODE_PIN
+     */
     private $_behaviorMode = self::MODE_SORT;
 
 
@@ -131,7 +135,7 @@ class SortBehavior extends Behavior
         $owner = $this->owner;
         $hash = $this->_getConditionHash();
 
-        if (!$this->isPinned()) {
+        if (!$this->isSorted()) {
             return false;
         }
 
@@ -161,26 +165,31 @@ class SortBehavior extends Behavior
         return $this->_behaviorMode == self::MODE_PIN;
     }
 
+
     public function togglePin()
     {
-        if (!$this->canPin()) {
-            return false;
+        if ($this->canPin()) {
+            $owner = $this->owner;
+            $s_attr = $this->_sortAttribute;
+
+            if ($this->isSorted()) {
+                $owner->setAttribute($s_attr, NULL);
+            } else {
+                $this->_setDefaultValue();
+            }
+
+            $owner->update(false, [$s_attr]);
+            return true;
         }
-
-        $owner = $this->owner;
-        $s_attr = $this->_sortAttribute;
-
-        if ($this->isPinned()) {
-            $owner->setAttribute($s_attr, NULL);
-        } else {
-            $this->_setDefaultValue();
-        }
-
-        $owner->update(false, [$s_attr]);
-        return true;
+        return false;
     }
 
-    public function isPinned()
+    /**
+     * Checking if the sort value is set in the record
+     *
+     * @return boolean
+     */
+    public function isSorted()
     {
         return !empty($this->owner->getAttribute($this->_sortAttribute));
     }
@@ -234,7 +243,7 @@ class SortBehavior extends Behavior
      */
     public function beforeSave()
     {
-        if (!$this->canPin() && !$this->isPinned()) {
+        if (!$this->canPin() && !$this->isSorted()) {
             $this->_setDefaultValue();
         }
     }

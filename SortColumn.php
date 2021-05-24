@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) 2018 Ivan Orlov
  * @license   https://github.com/demisang/yii2-sort/blob/master/LICENSE
@@ -32,6 +33,12 @@ class SortColumn extends ActionColumn
         'class' => 'btn btn-default btn-sm'
     ];
 
+    /** @inheritDoc */
+    public $header = '';
+
+    public $disableButtons = [];
+
+    /** @inheritdoc */
     public function init()
     {
         parent::init();
@@ -39,15 +46,18 @@ class SortColumn extends ActionColumn
         $this->contentOptions['style'] = 'text-align: right;white-space: nowrap;' . (isset($this->contentOptions['style']) ? ' ' . $this->contentOptions['style'] : '');
 
         $this->visibleButtons = [
+            'pin' => function ($model, $key, $index) {
+                return $model->canPin();
+            }
+        ];
+
+        $this->disableButtons = [
             'up' => function ($model, $key, $index) {
                 return $model->canSort(SortBehavior::DIR_UP);
             },
             'down' => function ($model, $key, $index) {
                 return $model->canSort(SortBehavior::DIR_DOWN);
             },
-            'pin' => function ($model, $key, $index) {
-                return $model->canPin();
-            }
         ];
     }
 
@@ -58,7 +68,9 @@ class SortColumn extends ActionColumn
     {
         $this->initDefaultButton('up', 'arrow-up');
         $this->initDefaultButton('down', 'arrow-down');
-        $this->initDefaultButton('pin', 'pushpin');
+        $this->initDefaultButton('pin', function ($model, $key, $index) {
+            return $model->isSorted() ? 'remove' : 'pushpin';
+        });
     }
 
     /**
@@ -73,12 +85,17 @@ class SortColumn extends ActionColumn
                 $options = array_merge([
                     'title' => $title,
                     'aria-label' => $title,
-                    'data-pjax' => '0',
+                    'data-pjax' => '0'
                 ], $additionalOptions, $this->buttonOptions);
 
-                // TODO: Вынести куда-нибудь
-                if ($name == 'pin' && $model->isPinned()) {
-                    $iconName = 'remove';
+                if (isset($this->disableButtons[$name])) {
+                    $options['disabled'] = $this->disableButtons[$name] instanceof Closure
+                    ? call_user_func($this->disableButtons[$name], $model, $key, $index)
+                    : $this->disableButtons[$name];
+                }
+
+                if ($iconName instanceof Closure) {
+                    $iconName = call_user_func($iconName, $model, $key, $index);
                 }
 
                 $icon = Html::tag('span', '', ['class' => "glyphicon glyphicon-$iconName"]);
