@@ -51,10 +51,10 @@ class SortColumn extends ActionColumn
         ];
 
         $this->disableButtons = [
-            'up' => function ($model, $key, $index) {
+            'up' => function ($model, $key) {
                 return $model->canSort(SortBehavior::DIR_UP);
             },
-            'down' => function ($model, $key, $index) {
+            'down' => function ($model, $key) {
                 return $model->canSort(SortBehavior::DIR_DOWN);
             },
         ];
