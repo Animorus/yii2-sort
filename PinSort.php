@@ -6,7 +6,7 @@ use Yii;
 use yii\data\Sort;
 use yii\db;
 
-class Sort extends Sort
+class PinSort extends Sort
 {
     public $pinAtrribute = 'sort';
 
