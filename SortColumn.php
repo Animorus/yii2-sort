@@ -45,6 +45,12 @@ class SortColumn extends ActionColumn
         $this->contentOptions['style'] = 'text-align: right;white-space: nowrap;' . (isset($this->contentOptions['style']) ? ' ' . $this->contentOptions['style'] : '');
 
         $this->visibleButtons = [
+            'up' => function ($model, $key, $index) {
+                return $model->isSorted();
+            },
+            'down' => function ($model, $key, $index) {
+                return $model->isSorted();
+            },
             'pin' => function ($model, $key, $index) {
                 return $model->canPin();
             }
