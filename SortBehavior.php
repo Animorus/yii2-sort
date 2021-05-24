@@ -33,12 +33,17 @@ class SortBehavior extends Behavior
     public $sortConfig = [];
     /** @var string Condition hash for current model */
     private $_hash;
-    /** @var boolean Sorting mode */
-    private $_onlyPinned = false;
     /** @var array Variable for temporarily storing min. and max. values */
     private static $_min_max_vals = array();
+
     const DIR_UP = SORT_ASC;
     const DIR_DOWN = SORT_DESC;
+
+    const MODE_SORT = 0;
+    const MODE_PIN = 1;
+
+    private $_behaviorMode = $this::MODE_SORT;
+
 
     /**
      * @param ActiveRecord $owner
@@ -153,11 +158,15 @@ class SortBehavior extends Behavior
 
     public function canPin()
     {
-        return $this->_onlyPinned;
+        return $this->_behaviorMode == $this::MODE_SORT;
     }
 
     public function togglePin()
     {
+        if (!$this->canPin()) {
+            return false;
+        }
+
         $owner = $this->owner;
         $s_attr = $this->_sortAttribute;
 
@@ -168,6 +177,7 @@ class SortBehavior extends Behavior
         }
 
         $owner->update(false, [$s_attr]);
+        return true;
     }
 
     public function isPinned()
@@ -203,9 +213,11 @@ class SortBehavior extends Behavior
         // Find the minimum and maximum values for the sorting table
         $query = (new Query())->select("MIN(`$s_field`) as min_sort, MAX(`$s_field`) as max_sort")->from($owner->tableName());
         $this->_applyCustomCondition($query);
-        if ($this->_onlyPinned) {
+
+        if ($this->canPin()) {
             $query->andWhere($this->_condition);
         }
+
         $row = $query->one($owner->getDb());
 
         $hash = $this->_getConditionHash();
@@ -222,7 +234,7 @@ class SortBehavior extends Behavior
      */
     public function beforeSave()
     {
-        if (!$this->_onlyPinned && !$this->isPinned()) {
+        if (!$this->canPin() && !$this->isPinned()) {
             $this->_setDefaultValue();
         }
     }
