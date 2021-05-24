@@ -67,7 +67,7 @@ class SortColumn extends ActionColumn
     {
         $this->initDefaultButton('up', 'arrow-up');
         $this->initDefaultButton('down', 'arrow-down');
-        $this->initDefaultButton('pin', function ($model, $key, $index) {
+        $this->initDefaultButton('pin', function ($model, $key) {
             return $model->isSorted() ? 'remove' : 'pushpin';
         });
     }
@@ -89,12 +89,12 @@ class SortColumn extends ActionColumn
 
                 if (isset($this->disableButtons[$name])) {
                     $options['disabled'] = $this->disableButtons[$name] instanceof Closure
-                        ? call_user_func($this->disableButtons[$name], $model, $key, $index)
+                        ? call_user_func($this->disableButtons[$name], $model, $key)
                         : $this->disableButtons[$name];
                 }
 
                 if ($iconName instanceof Closure) {
-                    $iconName = call_user_func($iconName, $model, $key, $index);
+                    $iconName = call_user_func($iconName, $model, $key);
                 }
 
                 $icon = Html::tag('span', '', ['class' => "glyphicon glyphicon-$iconName"]);
